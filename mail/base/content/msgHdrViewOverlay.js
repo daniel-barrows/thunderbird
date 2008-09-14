@@ -22,6 +22,7 @@
 #
 # Contributor(s):
 #   Markus Hossner <markushossner@gmx.de>
+#   Mark Banner <bugzilla@standard8.plus.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1163,23 +1164,21 @@ function getCardForEmail(emailAddress)
 function AddContact(emailAddressNode)
 {
   if (emailAddressNode) {
-    var primaryEmail = emailAddressNode.getAttribute("emailAddress");
-    var displayName = emailAddressNode.getAttribute("displayName");
-    window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
-                      "",
-                      "chrome,resizable=no,titlebar,modal,centerscreen",
-                      {primaryEmail:primaryEmail, displayName:displayName });
+    // Just save the new node straight away
+    Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
+      .getService(Components.interfaces.nsIAbAddressCollecter)
+      .collectSingleAddress(emailAddressNode.getAttribute("emailAddress"),
+                            emailAddressNode.getAttribute("displayName"), true,
+                            Components.interfaces.nsIAbPreferMailFormat.unknown,
+                            true);
   }
 }
 
 function EditContact(emailAddressNode)
 {
-  if (emailAddressNode.cardDetails.card) {
-    window.openDialog("chrome://messenger/content/addressbook/abEditCardDialog.xul",
-                      "", "chrome,resizable=no,modal,titlebar,centerscreen",
-                      { abURI: emailAddressNode.cardDetails.book.URI,
-                        card: emailAddressNode.cardDetails.card });
-  }
+  if (emailAddressNode.cardDetails.card)
+    editContactInlineUI.showEditContactPanel(emailAddressNode.cardDetails,
+                                             emailAddressNode);
 }
 
 // SendMailToNode takes the email address title button, extracts
@@ -1393,7 +1392,7 @@ function createAttachmentDisplayName(aAttachment)
   // and whitespace from filename extensions). Leading and internal
   // whitespace will be taken care of by the crop="center" attribute.
   // We must not change the actual filename, though.
-  return aAttachment.displayName.replace(/\s+$/, "");
+  return aAttachment.displayName.trimRight();
 }
 
 function displayAttachmentsForExpandedView()

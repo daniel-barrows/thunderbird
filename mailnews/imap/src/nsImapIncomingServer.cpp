@@ -90,7 +90,6 @@
 
 static NS_DEFINE_CID(kImapProtocolCID, NS_IMAPPROTOCOL_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
-static NS_DEFINE_CID(kImapServiceCID, NS_IMAPSERVICE_CID);
 static NS_DEFINE_CID(kSubscribableServerCID, NS_SUBSCRIBABLESERVER_CID);
 static NS_DEFINE_CID(kCImapHostSessionListCID, NS_IIMAPHOSTSESSIONLIST_CID);
 
@@ -692,20 +691,17 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
   PRBool userCancelled = PR_FALSE;
 
   // loop until we find a connection that can run the url, or doesn't have to wait?
-  for (PRInt32 i = 0; i < cnt && !canRunUrlImmediately && !canRunButBusy; i++)
+  for (PRInt32 i = cnt - 1; i >= 0 && !canRunUrlImmediately && !canRunButBusy; i--)
   {
     connection = m_connectionCache[i];
     if (connection)
     {
-      if (ConnectionTimeOut(connection))
+      PRBool badConnection = ConnectionTimeOut(connection);
+      if (!badConnection)
       {
-        connection = nsnull;
-        i--; cnt--; // if the connection times out, we'll remove it from the array,
-            // so we need to adjust the array index.
-      }
-      else
-      {
-        rv = connection->CanHandleUrl(aImapUrl, &canRunUrlImmediately, &canRunButBusy);
+        badConnection = NS_FAILED(connection->CanHandleUrl(aImapUrl, 
+                                                           &canRunUrlImmediately, 
+                                                           &canRunButBusy));
 #ifdef DEBUG_bienvenu
         nsCAutoString curSelectedFolderName;
         if (connection)    
@@ -730,12 +726,11 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
         }
 #endif // DEBUG_bienvenu
       }
-    }
-    if (NS_FAILED(rv))
-    {
+      if (badConnection)
+      {
         connection = nsnull;
-        rv = NS_OK; // don't want to return this error, just don't use the connection
         continue;
+      }
     }
 
     // if this connection is wrong, but it's not busy, check if we should designate
@@ -763,11 +758,6 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
     if (!canRunButBusy && !canRunUrlImmediately)
       connection = nsnull;
   }
-
-  if (ConnectionTimeOut(connection))
-      connection = nsnull;
-  if (ConnectionTimeOut(freeConnection))
-    freeConnection = nsnull;
 
   nsImapState requiredState;
   aImapUrl->GetRequiredImapState(&requiredState);
@@ -934,14 +924,28 @@ nsImapIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
   
   if (!rootMsgFolder) return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  if (!imapService)
-    return NS_ERROR_FAILURE;
   rv = imapService->DiscoverAllFolders(NS_GetCurrentThread(), rootMsgFolder,
                                        this, aMsgWindow, nsnull);
   return rv;
 }
+
+NS_IMETHODIMP
+nsImapIncomingServer::VerifyLogon(nsIUrlListener *aUrlListener)
+{
+  nsresult rv;
+
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  // this will create the resource if it doesn't exist, but it shouldn't
+  // do anything on disk.
+  rv = GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return imapService->VerifyLogon(rootFolder, aUrlListener);
+}
+
 
 NS_IMETHODIMP nsImapIncomingServer::PerformBiff(nsIMsgWindow* aMsgWindow)
 {
@@ -1230,13 +1234,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
       imapFolder->SetBoxFlags(boxFlags);
       imapFolder->SetExplicitlyVerify(explicitlyVerify);
       imapFolder->GetOnlineName(onlineName);
-      if (boxFlags & kNewlyCreatedFolder)
-      {
-        PRBool setNewFoldersForOffline = PR_FALSE;
-        GetOfflineDownload(&setNewFoldersForOffline);
-        if (setNewFoldersForOffline)
-          child->SetFlag(nsMsgFolderFlags::Offline);
-      }
+      
       // online name needs to use the correct hierarchy delimiter (I think...)
       // or the canonical path - one or the other, but be consistent.
       dupFolderPath.ReplaceChar('/', hierarchyDelimiter);
@@ -2091,7 +2089,7 @@ nsImapIncomingServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, PRBool aF
   rv = GetServerURI(serverUri);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
 /*
@@ -2120,7 +2118,7 @@ nsImapIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToS
   rv = SetShowFullName(PR_FALSE);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   return imapService->GetListOfFoldersOnServer(this, aMsgWindow);
 }
@@ -2290,7 +2288,7 @@ NS_IMETHODIMP
 nsImapIncomingServer::SubscribeToFolder(const nsAString& aName, PRBool subscribe, nsIURI **aUri)
 {
   nsresult rv;
-  nsCOMPtr<nsIImapService> imapService = do_GetService(kImapServiceCID, &rv);
+  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgFolder> rootMsgFolder;
@@ -2694,14 +2692,19 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
 nsresult
 nsImapIncomingServer::GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue)
 {
-  NS_ENSURE_ARG_POINTER(prefSuffix);
-  nsresult rv;
-  nsCAutoString prefName;
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_ARG_POINTER(prefValue);
 
-  // Time to check if this server has the pref
-  // (mail.server.<serverkey>.prefSuffix) already set
-  return mPrefBranch->GetBoolPref(prefName.get(), prefValue);
+  // GetBoolValue will default to false if it's not present, which is not what
+  // the callers of this method expect. Save the passed-in value so that we can
+  // reset if the we can't find the value.
+  // See bug #455069 and bug #454936 for two known regressions caused by this
+  // change.
+  PRBool oldValue = *prefValue;
+  nsresult rv = GetBoolValue(prefSuffix, prefValue);
+  if (NS_FAILED(rv))
+    *prefValue = oldValue;
+
+  return rv;
 }
 
 NS_IMETHODIMP

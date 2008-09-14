@@ -134,7 +134,6 @@ bin\greprefs\*
 
 ; LDAP components
 bin\components\mozldap.xpt
-bin\components\nsLDAPPrefsService.js
 bin\components\nsAbLDAPAttributeMap.js
 bin\nsldap32v60.dll
 bin\nsldappr32v60.dll
@@ -175,6 +174,10 @@ bin\components\url-classifier.xpt
 ; Address Book autocomplete
 bin\components\nsAbAutoCompleteMyDomain.js
 bin\components\nsAbAutoCompleteSearch.js
+
+; Windows Search integration
+bin\components\nsWinSearchIntegration.js
+bin\WSEnable.exe
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Base Package Files

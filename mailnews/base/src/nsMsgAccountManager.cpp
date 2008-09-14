@@ -456,6 +456,57 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
   return createKeyedServer(key, username, hostname, serverType, _retval);
 }
 
+NS_IMETHODIMP
+nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer, 
+                                          PRBool aCleanupFiles)
+{
+  nsCString serverKey;
+  nsresult rv = aServer->GetKey(serverKey);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  LogoutOfServer(aServer); // close cached connections and forget session password
+
+  // invalidate the FindServer() cache if we are removing the cached server
+  if (m_lastFindServerResult == aServer)
+    SetLastServerFound(nsnull, EmptyCString(), EmptyCString(), 0, EmptyCString());
+
+  m_incomingServers.Remove(serverKey);
+
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  nsCOMPtr<nsISupportsArray> allDescendents;
+
+  rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rootFolder->ListDescendents(allDescendents);
+
+  PRUint32 cnt = 0;
+  rv = allDescendents->Count(&cnt);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  for (PRUint32 i = 0; i < cnt; i++)
+  {
+    nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
+    if (folder)
+      folder->ForceDBClosed();
+  }
+
+  mFolderListeners->EnumerateForwards(removeListenerFromFolder, (void*)rootFolder);
+  NotifyServerUnloaded(aServer);
+  if (aCleanupFiles)
+  {
+    rv = aServer->RemoveFiles();
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  // now clear out the server once and for all.
+  // watch out! could be scary
+  aServer->ClearAllValues();
+  rootFolder->Shutdown(PR_TRUE);
+  return rv;
+}
+
 /*
  * create a server when you know the key and the type
  */
@@ -565,49 +616,8 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = aAccount->GetIncomingServer(getter_AddRefs(server));
   if (NS_SUCCEEDED(rv) && server) {
-    nsCString serverKey;
-    rv = server->GetKey(serverKey);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    LogoutOfServer(server); // close cached connections and forget session password
-
-    // invalidate the FindServer() cache if we are removing the cached server
-    if (m_lastFindServerResult) {
-      nsCString cachedServerKey;
-      rv = m_lastFindServerResult->GetKey(cachedServerKey);
-      NS_ENSURE_SUCCESS(rv,rv);
-
-      if (serverKey.Equals(cachedServerKey)) {
-        rv = SetLastServerFound(nsnull, EmptyCString(), EmptyCString(), 0, EmptyCString());
-        NS_ENSURE_SUCCESS(rv,rv);
-      }
-    }
-
-    m_incomingServers.Remove(serverKey);
-
-    nsCOMPtr<nsIMsgFolder> rootFolder;
-    server->GetRootFolder(getter_AddRefs(rootFolder));
-    nsCOMPtr<nsISupportsArray> allDescendents;
-    NS_NewISupportsArray(getter_AddRefs(allDescendents));
-    rootFolder->ListDescendents(allDescendents);
-    PRUint32 cnt =0;
-    rv = allDescendents->Count(&cnt);
+    rv = RemoveIncomingServer(server, PR_FALSE);
     NS_ENSURE_SUCCESS(rv, rv);
-    for (PRUint32 i = 0; i < cnt;i++)
-    {
-      nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i, &rv);
-      folder->ForceDBClosed();
-    }
-
-    mFolderListeners->EnumerateForwards(removeListenerFromFolder, (void*)rootFolder);
-    NotifyServerUnloaded(server);
-    rv = server->RemoveFiles();
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // now clear out the server once and for all.
-    // watch out! could be scary
-    server->ClearAllValues();
-    rootFolder->Shutdown(PR_TRUE);
   }
 
   nsCOMPtr<nsISupportsArray> identityArray;
@@ -616,10 +626,38 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     PRUint32 count=0;
     identityArray->Count(&count);
     PRUint32 i;
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < count; i++)
+    {
       nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(identityArray, i, &rv));
+      PRBool identityStillUsed = PR_FALSE;
+      // for each identity, see if any existing account still uses it, 
+      // and if not, clear it.
       if (NS_SUCCEEDED(rv))
-        identity->ClearAllValues(); // clear out all identity information.
+      {
+        PRUint32 numAccounts;
+        m_accounts->Count(&numAccounts);
+        PRUint32 index;
+        for (index = 0; index < numAccounts && !identityStillUsed; index++) 
+        {
+          nsCOMPtr<nsIMsgAccount> existingAccount;
+          rv = m_accounts->QueryElementAt(index, NS_GET_IID(nsIMsgAccount),
+                                          (void **)getter_AddRefs(existingAccount));
+          if (NS_SUCCEEDED(rv)) 
+          {
+            nsCOMPtr<nsISupportsArray> existingIdentitiesArray;
+  
+            rv = existingAccount->GetIdentities(getter_AddRefs(existingIdentitiesArray));
+            if (existingIdentitiesArray->IndexOf(identity) != kNotFound)
+            {
+              identityStillUsed = PR_TRUE;
+              break;
+            }
+          }
+        }
+      }
+      // clear out all identity information if no other account uses it.
+      if (!identityStillUsed)
+        identity->ClearAllValues();
     }
   }
 
@@ -1658,8 +1696,7 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
     return NS_ERROR_UNEXPECTED;
 
   // cache for next time
-  rv = SetLastServerFound(serverInfo.server, hostname, username, port, type);
-  NS_ENSURE_SUCCESS(rv, rv);
+  SetLastServerFound(serverInfo.server, hostname, username, port, type);
   NS_ADDREF(*aResult = serverInfo.server);
   return NS_OK;
 }
@@ -1704,8 +1741,7 @@ nsMsgAccountManager::FindServer(const nsACString& username,
     return NS_ERROR_UNEXPECTED;
 
   // cache for next time
-  rv = SetLastServerFound(serverInfo.server, hostname, username, 0, type);
-  NS_ENSURE_SUCCESS(rv,rv);
+  SetLastServerFound(serverInfo.server, hostname, username, 0, type);
 
   NS_ADDREF(*aResult = serverInfo.server);
   return NS_OK;
@@ -2286,7 +2322,7 @@ nsMsgAccountManager::GetCleanupInboxInProgress(PRBool *bVal)
   return NS_OK;
 }
 
-nsresult
+void
 nsMsgAccountManager::SetLastServerFound(nsIMsgIncomingServer *server, const nsACString& hostname, 
                                         const nsACString& username, const PRInt32 port, const nsACString& type)
 {
@@ -2295,7 +2331,6 @@ nsMsgAccountManager::SetLastServerFound(nsIMsgIncomingServer *server, const nsAC
   m_lastFindServerUserName = username;
   m_lastFindServerPort = port;
   m_lastFindServerType = type;
-  return NS_OK;
 }
 
 NS_IMETHODIMP

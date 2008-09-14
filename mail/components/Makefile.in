@@ -53,8 +53,13 @@ DIRS += phishing
 endif
 
 # Mac and Windows have search integration components
-ifneq (,$(filter windows cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
+ifneq (,$(filter cocoa mac, $(MOZ_WIDGET_TOOLKIT)))
 DIRS += search
+endif
+ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
+ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
+DIRS += search
+endif
 endif
 
 DIRS += build

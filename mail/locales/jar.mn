@@ -41,6 +41,8 @@
   locale/@AB_CD@/messenger/subscribe.properties                         (%chrome/messenger/subscribe.properties)
   locale/@AB_CD@/messenger/msgFolderPickerOverlay.dtd                   (%chrome/messenger/msgFolderPickerOverlay.dtd)
   locale/@AB_CD@/messenger/msgHdrViewOverlay.dtd                        (%chrome/messenger/msgHdrViewOverlay.dtd)
+  locale/@AB_CD@/messenger/editContactOverlay.dtd                       (%chrome/messenger/editContactOverlay.dtd)
+  locale/@AB_CD@/messenger/editContactOverlay.properties                (%chrome/messenger/editContactOverlay.properties)
   locale/@AB_CD@/messenger/mailTurboMenu.properties                     (%chrome/messenger/mailTurboMenu.properties)
   locale/@AB_CD@/messenger/mailEditorOverlay.dtd                        (%chrome/messenger/mailEditorOverlay.dtd)
   locale/@AB_CD@/messenger/msgSynchronize.dtd                           (%chrome/messenger/msgSynchronize.dtd)
@@ -85,6 +87,7 @@
   locale/@AB_CD@/messenger/outlookImportMsgs.properties                 (%chrome/messenger/outlookImportMsgs.properties)
   locale/@AB_CD@/messenger/shellservice.properties                      (%chrome/messenger/shellservice.properties)
   locale/@AB_CD@/messenger/shutdownWindow.properties                    (%chrome/messenger/shutdownWindow.properties)
+  locale/@AB_CD@/messenger/configEditorOverlay.dtd                      (%chrome/messenger/configEditorOverlay.dtd)
   locale/@AB_CD@/messenger/addressbook/abMainWindow.dtd                 (%chrome/messenger/addressbook/abMainWindow.dtd)
   locale/@AB_CD@/messenger/addressbook/abNewCardDialog.dtd              (%chrome/messenger/addressbook/abNewCardDialog.dtd)
   locale/@AB_CD@/messenger/addressbook/abContactsPanel.dtd              (%chrome/messenger/addressbook/abContactsPanel.dtd)
@@ -127,6 +130,7 @@
   locale/@AB_CD@/messenger/preferences/preferences.properties           (%chrome/messenger/preferences/preferences.properties)
   locale/@AB_CD@/messenger/migration/migration.dtd                      (%chrome/messenger/migration/migration.dtd)
   locale/@AB_CD@/messenger/migration/migration.properties               (%chrome/messenger/migration/migration.properties)
+  locale/@AB_CD@/messenger/search/searchIntegrationDialogWin.dtd        (%chrome/messenger/search/searchIntegrationDialogWin.dtd)
 % locale messenger-mapi @AB_CD@ %locale/@AB_CD@/messenger-mapi/
   locale/@AB_CD@/messenger-mapi/mapi.properties                         (%chrome/messenger-mapi/mapi.properties)
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/

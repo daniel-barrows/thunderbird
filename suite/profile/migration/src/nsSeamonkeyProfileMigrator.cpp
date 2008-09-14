@@ -284,14 +284,21 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifdef SUITE_USING_TOOLKIT_DM
-  MAKESAMETYPEPREFTRANSFORM("browser.download.autoDownload",           Bool),
-  MAKESAMETYPEPREFTRANSFORM("browser.download.lastLocation",           Bool),
   MAKEPREFTRANSFORM("browser.downloadmanager.behavior", 0, Int,
                     DownloadManager),
 #else
-  // Note browser.download.* prefs are covered below.
+  // Note browser.download.progressDnldDialog.* prefs are covered below.
   MAKESAMETYPEPREFTRANSFORM("browser.downloadmanager.behavior",        Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.download.save_converter_index",   Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.download.autoDownload",           Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.download.lastLocation",           Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.download.finished_download_alert", Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.download.finished_download_sound", Bool),
+  MAKEPREFTRANSFORM("browser.download.finished_sound_url", 0, String, File),
 #endif
+  MAKESAMETYPEPREFTRANSFORM("browser.download.dir",                    String),
+  MAKESAMETYPEPREFTRANSFORM("browser.download.show_plugins_in_list",   Bool),
+  MAKESAMETYPEPREFTRANSFORM("browser.download.hide_plugins_without_extensions", Bool),
 
   MAKESAMETYPEPREFTRANSFORM("browser.enable_automatic_image_resizing", Bool),
   MAKESAMETYPEPREFTRANSFORM("browser.fixup.alternate.enabled",         Bool),
@@ -553,6 +560,14 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("plugin.override_internal_types",          Bool),
   MAKESAMETYPEPREFTRANSFORM("plugin.expose_full_path",                 Bool),
 
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.disable_from_plugins",     Int),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.prefill_whitelist",        Bool),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.remove_blacklist",         Bool),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.showBrowserMessage",       Bool),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.sound_enabled",            Bool),
+  MAKEPREFTRANSFORM("privacy.popups.sound_url", "privacy.popups.sound_type", String, File),
+  MAKESAMETYPEPREFTRANSFORM("privacy.popups.statusbar_icon_enabled",   Bool),
+
   MAKESAMETYPEPREFTRANSFORM("security.default_personal_cert",          String),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl2",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl3",                    Bool),
@@ -623,10 +638,10 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
     "bidi.",
     "browser.chrome.",
     "browser.display.",
-  // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
-  // activate this code.
+  // XXX Bug 381157 When suite does not use Toolkit's DM backend,
+  // we need to activate this code.
 #ifndef SUITE_USING_TOOLKIT_DM
-    "browser.download.",
+    "browser.download.progressDnldDialog.",
 #endif
     "browser.search.",
     "browser.tabs.",
@@ -653,7 +668,8 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
     "mousewheel.",
     "network.http.",
     "print.",
-    "privacy.",
+    "privacy.item.",
+    "privacy.sanitize.",
     "security.OSCP.",
     "security.crl.",
     "ui.key."

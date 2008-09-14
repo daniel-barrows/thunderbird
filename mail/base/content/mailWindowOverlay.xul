@@ -850,12 +850,12 @@
               oncommand="gContextMenu.copyEmail();"/>
     <menuseparator id="messagePaneContext-sep-copy"/>
     <menuitem id="messagePaneContext-savelink"
-              label="&saveLinkCmd.label;"
-              accesskey="&saveLinkCmd.accesskey;"
+              label="&saveLinkAsCmd.label;"
+              accesskey="&saveLinkAsCmd.accesskey;"
               oncommand="gContextMenu.saveLink();"/>
     <menuitem id="messagePaneContext-saveimage"
-              label="&saveImageCmd.label;"
-              accesskey="&saveImageCmd.accesskey;"
+              label="&saveImageAsCmd.label;"
+              accesskey="&saveImageAsCmd.accesskey;"
               oncommand="gContextMenu.saveImage();"/>
     <menuseparator id="messagePaneContext-sep-reportPhishing"/>
     <menuitem id="messagePaneContext-reportPhishingURL"
@@ -1546,12 +1546,22 @@
                        oncommand="goDoCommand('button_junk')"/>
       </deck>
     </toolbaritem>
-    <toolbarbutton id="button-delete"
-                   class="toolbarbutton-1"
-                   label="&deleteButton.label;"
-                   tooltiptext="&deleteButton.tooltip;"
-                   observes="button_delete"
-                   oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+    <toolbaritem id="button-delete">
+      <deck id="delete-deck" observes="button_delete">
+         <toolbarbutton id="button-mark-deleted"
+                        class="toolbarbutton-1"
+                        label="&deleteButton.label;"
+                        tooltiptext="&deleteButton.tooltip;"
+                        observes="button_delete"
+                        oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+         <toolbarbutton id="button-mark-undelete"
+                        class="toolbarbutton-1"
+                        label="&undeleteButton.label;"
+                        tooltiptext="&undeleteButton.tooltip;"
+                        observes="button_delete"
+                        oncommand="goDoCommand('cmd_delete')"/>
+      </deck>
+    </toolbaritem>
 #ifdef XP_MACOSX
     <toolbarbutton id="button-print"
                    class="toolbarbutton-1"
@@ -1673,37 +1683,52 @@
                      onpopupshowing="InitQuickSearchPopup();"
                      popupalign="topleft"
                      popupanchor="bottomleft">
+            <!-- The sequence of menu items must have a contiguous strictly
+                 increasing sequence of ordinals starting at 0 (see the
+                 VK_UP/VK_DOWN key handlers in search.xml) -->
             <menuitem id="searchSubjectMenu"
                       value="0"
+                      ordinal="0"
                       label="&searchSubjectMenu.label;"
                       type="radio"
                       oncommand="changeQuickSearchMode(this)"/>
             <menuitem id="searchFromMenu"
                       value="1"
+                      ordinal="1"
                       label="&searchFromMenu.label;"
                       type="radio"
                       oncommand="changeQuickSearchMode(this)" />
             <menuitem id="searchSubjectOrFromMenu"
                       value="2"
+                      ordinal="2"
                       label="&searchSubjectOrFromMenu.label;"
                       type="radio"
                       oncommand="changeQuickSearchMode(this)"/>
             <menuitem id="searchRecipient"
                       value="5"
+                      ordinal="3"
                       label="&searchRecipient.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchSubjectOrRecipient"
+                      value="6"
+                      ordinal="4"
+                      label="&searchSubjectOrRecipientMenu.label;"
                       type="radio"
                       oncommand="changeQuickSearchMode(this)"/>
             <menuitem id="searchMessageBody"
                       value="3"
+                      ordinal="5"
                       label="&searchMessageBody.label;"
                       type="radio"
                       oncommand="changeQuickSearchMode(this)"/>
-            <menuseparator id="afterSearchMessageBodySeparator"/>
-            <!-- if the value for the save as virtual folder menu changes,
-                 please update the VK_DOWN key handler in searchbar.xml
-            -->
+            <!-- The ordinal of that separator must be the biggest ordinal of a
+                 valid quicksearch option, plus one (see the VK_UP / VK_DOWN key
+                 handlers in search.xml). -->
+            <menuseparator id="quickSearchAfterLastOptionSeparator"
+                           ordinal="6"/>
             <menuitem id="quickSearchSaveAsVirtualFolder"
-                      value="5"
+                      ordinal="99"
                       label="&saveAsVirtualFolderMenu.label;"
                       oncommand="saveViewAsVirtualFolder()"/>
           </menupopup>

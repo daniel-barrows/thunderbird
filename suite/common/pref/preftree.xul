@@ -109,7 +109,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-download.xul" label="&download.label;"/>
+            <treecell label="(Migrated: &download.label;)"/>
           </treerow>
         </treeitem>
         <!-- Taking out Policies panel b/c bug 44121
@@ -139,8 +139,7 @@
         </treeitem>
         <treeitem id="popupspref">
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-popups.xul"
-                      label="&popups.label;"/> 
+            <treecell label="(Migrated: &popups.label;)"/> 
           </treerow>
         </treeitem>
       </treechildren>
@@ -163,7 +162,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-cache.xul" label="&cache.label;"/> 
+            <treecell label="(Migrated: &cache.label;)"/>
           </treerow>
         </treeitem>
         <treeitem id="proxiesItem">
@@ -173,7 +172,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-http.xul" label="&httpnetworking.label;"/> 
+            <treecell label="(Migrated: &httpnetworking.label;)"/> 
           </treerow>
         </treeitem>        
         <treeitem>

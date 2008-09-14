@@ -102,6 +102,7 @@
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
 #include "nsInt64.h"
+#include "nsIFolderLookupService.h"
 
 #define PREF_MAIL_ROOT_IMAP "mail.root.imap"            // old - for backward compatibility only
 #define PREF_MAIL_ROOT_IMAP_REL "mail.root.imap-rel"
@@ -1417,6 +1418,32 @@ nsresult nsImapService::FolderCommand(nsIEventTarget *clientEventTarget,
   }
   return rv;
 }
+
+NS_IMETHODIMP
+nsImapService::VerifyLogon(nsIMsgFolder *aFolder, nsIUrlListener *aUrlListener)
+{
+  nsCOMPtr<nsIImapUrl> aImapUrl;
+  nsCAutoString urlSpec;
+  
+  PRUnichar delimiter = '/'; // shouldn't matter what is is.
+  nsresult rv = CreateStartOfImapUrl(EmptyCString(), getter_AddRefs(aImapUrl), aFolder,
+                                     aUrlListener, urlSpec, delimiter);
+  if (NS_SUCCEEDED(rv) && aImapUrl)
+  {
+    nsCOMPtr<nsIURI> uri = do_QueryInterface(aImapUrl);
+    
+    nsCOMPtr<nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(aImapUrl);
+    mailNewsUrl->SetSuppressErrorMsgs(PR_TRUE);
+    rv = SetImapUrlSink(aFolder, aImapUrl);
+    urlSpec.Append("/verifyLogon");
+    rv = uri->SetSpec(urlSpec);
+    if (NS_SUCCEEDED(rv))
+      rv = GetImapConnectionAndLoadUrl(NS_GetCurrentThread(), aImapUrl, nsnull, nsnull);
+  }
+  return rv;
+
+}
+
 
 // Noop, used to update a folder (causes server to send changes).
 NS_IMETHODIMP nsImapService::Noop(nsIEventTarget *aClientEventTarget, 
