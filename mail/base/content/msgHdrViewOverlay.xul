@@ -1,0 +1,275 @@
+<?xml version="1.0"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Communicator client code.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 1998-1999
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/msgHdrViewOverlay.dtd">
+
+<?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script src="chrome://messenger/content/msgHdrViewOverlay.js"/>
+
+<!-- drag and drop -->
+<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+
+<stringbundleset id="stringbundleset">
+  <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
+</stringbundleset>
+
+<popup id="messageIdContext" popupanchor="bottomleft"
+       onpopupshowing="FillMessageIdContextMenu(document.popupNode);">
+  <menuitem id="messageIdContext-messageIdTarget"
+            disabled="true"/>
+  <menuseparator/>
+  <menuitem label="&OpenMessageForMsgId.label;"
+            oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
+                       OpenMessageForMessageId(messageId)"/>
+  <menuitem label="&OpenBrowserWithMsgId.label;"
+            oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
+                       OpenBrowserWithMessageId(messageId)"/>
+  <menuitem label="&CopyMessageId.label;"
+            oncommand="var messageId = GetMessageIdFromNode(document.popupNode, false);
+                       CopyMessageId(messageId);"/>
+</popup>
+
+<popup id="attachmentListContext" onpopupshowing="return onShowAttachmentContextMenu();">
+  <menuitem id="context-openAttachment" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;"
+            oncommand="HandleSelectedAttachments('open');"/>
+  <menuitem id="context-saveAttachment" label="&saveAsAttachmentCmd.label;" accesskey="&saveAsAttachmentCmd.accesskey;"
+            oncommand="HandleSelectedAttachments('saveAs');"/>
+  <menuseparator id="context-menu-separator"/>
+  <menuitem id="context-detachAttachment" label="&detachAttachmentCmd.label;" 
+            oncommand="HandleSelectedAttachments('detach');"/>
+  <menuitem id="context-deleteAttachment" label="&deleteAttachmentCmd.label;" 
+            oncommand="HandleSelectedAttachments('delete');"/>
+  <menuitem id="context-saveAllAttachments" oncommand="HandleAllAttachments('save');" 
+    label="&saveAllAttachmentsCmd.label;" accesskey="&saveAllAttachmentsCmd.accesskey;"/>
+  <menuitem id="context-detachAllAttachments" oncommand="HandleAllAttachments('detach');" 
+    label="&detachAllAttachmentsCmd.label;"/>
+  <menuitem id="context-deleteAllAttachments" oncommand="HandleAllAttachments('delete');" 
+    label="&deleteAllAttachmentsCmd.label;"/>
+</popup>
+
+<popup id="attachmentMenuList">
+  <menuseparator/>
+  <menuitem id="file-saveAllAttachments" label="&saveAllAttachmentsCmd.label;" 
+    accesskey="&saveAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('save');"/>
+  <menuitem id="file-detachAllAttachments" label="&detachAllAttachmentsCmd.label;" 
+    accesskey="&detachAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('detach');" />
+  <menuitem id="file-deleteAllAttachments" label="&deleteAllAttachmentsCmd.label;" 
+    accesskey="&deleteAllAttachmentsCmd.accesskey;" oncommand="HandleAllAttachments('delete');" />
+</popup>
+
+<popup id="copyUrlPopup" popupanchor="bottomleft">
+  <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
+</popup>
+
+<hbox id="msgHeaderView" collapsed="true" class="main-header-area">
+  <deck id="msgHeaderViewDeck" persist="selectedIndex" selectedIndex="1" flex="1">
+    <!-- the message pane consists of 4 'boxes'. Box #1 is a grid, showing a brief view of the headers -->
+    <vbox id="collapsedHeaderView" class="header-part1 headerContainer" flex="1" pack="start">
+      <hbox flex="1">
+        <hbox id="collapsedfromBox" align="baseline">
+          <hbox>
+            <mail-multi-emailHeaderField id="collapsedfromValue"
+                                         pack="start"
+                                         class="collapsedHeaderDisplayName"
+                                         label="&fromField2.label;"/>
+          </hbox>
+        </hbox>
+        <spacer flex="1"/>
+        <hbox id="collapseddateBox">
+          <hbox>
+            <textbox id="collapseddateValue" class="collapsedHeaderValue plain" readonly="true"/>
+          </hbox>
+        </hbox>
+      </hbox>
+      <hbox align="baseline" flex="1">
+        <hbox id="collapsedsubjectBox" flex="1">
+          <hbox flex="1" align="center">
+            <textbox flex="1" id="collapsedsubjectValue"
+                     class="collapsedHeaderValue plain" readonly="true"/>
+          </hbox>
+          <vbox>
+            <button align="center"
+                    id="showDetailsButton"
+                    tooltiptext="&showDetailsButton.label;"
+                    onclick="ToggleHeaderView();"
+                    class="msgHeaderView-button"/>
+          </vbox>
+        </hbox>
+      </hbox>
+    </vbox>
+
+    <!-- the message pane consists of 3 'boxes'. Box #2 is the expanded headers view (the default view) -->
+    <hbox id="expandedHeaderView" flex="1">
+
+      <!--  XXX this should switch to using <grid> for expandedHeaders to get
+            away from gross historical CSS pseudo-boxery used for header
+            name positioning -->
+      <vbox id="expandedHeaders" flex="1">
+
+        <hbox id="expandedHeadersTopBox" flex="1">
+
+          <hbox flex="1" align="end">
+            <mail-multi-emailHeaderField id="expandedfromBox"
+                                         label="&fromField2.label;"
+                                         collapsed="false"
+                                         flex="1"/>
+          </hbox>
+          <!-- This might want to become a customizable toolbar at some
+               point -->
+          <hbox id="expandedHeadersButtonBox" align="start">
+
+            <!-- XXXdmose need to move these commands to a controller, either
+                 on the header view, the message pane, or the default
+                 controller
+                 -->
+
+            <!-- XXXdmose need to audit our shortcut/a11y setup and make sure
+                 these buttons are doing the right thing -->
+
+            <button id="replyButton" label="&replyButton.label;"
+                    oncommand="MsgReplyMessage(event);" observes="button_reply"
+                    class="msgHeaderView-button"/>
+            <button id="forwardButton" label="&forwardButton.label;"
+                    oncommand="MsgForwardMessage(event);"
+                    observes="button_forward" class="msgHeaderView-button"/>
+            <button id="junkButton" label="&junkButton.label;"
+                    observes="button_junk" class="msgHeaderView-button"
+                    oncommand="goDoCommand('button_junk')"/>
+            <button id="trashButton" tooltiptext="&trashButton.tooltiptext;"
+                    class="msgHeaderView-button" observes="button_delete"
+                    oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
+           </hbox>
+        </hbox>
+
+        <hbox id="otherHeadersAndButtonsBox" flex="1">
+          <vbox id="variousHeadersBox" flex="1">
+            <mail-headerfield id="expandedsubjectBox" label="&subjectField2.label;"
+                              collapsed="false"/>
+            <mail-headerfield id="expandedorganizationBox"
+                              label="&organizationField2.label;"
+                              collapsed="true"/>
+            <mail-emailheaderfield id="expandedsenderBox"
+                                   label="&senderField2.label;"
+                                   collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedreply-toBox"
+                                         label="&replyToField2.label;"
+                                         collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedtoBox"
+                                         label="&toField2.label;"
+                                         collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedccBox"
+                                         label="&ccField2.label;"
+                                         collapsed="true"/>
+            <mail-multi-emailHeaderField id="expandedbccBox" 
+                                         label="&bccField2.label;"
+                                         collapsed="true"/>
+            <mail-headerfield id="expandednewsgroupsBox"
+                              label="&newsgroupsField2.label;"
+                              collapsed="true"/>
+            <mail-headerfield id="expandedfollowup-toBox"
+                              label="&followupToField2.label;"
+                              collapsed="true"/>
+            <mail-headerfield id="expandeddateBox" label="&dateField2.label;"
+                              collapsed="true"/>
+            <mail-messageids-headerfield id="expandedmessage-idBox"
+                                         label="&messageIdField2.label;"
+                                         collapsed="true"/>
+            <mail-messageids-headerfield id="expandedin-reply-toBox"
+                                         label="&inReplyToField2.label;"
+                                         collapsed="true"/>
+            <mail-messageids-headerfield id="expandedreferencesBox"
+                                         label="&referencesField2.label;"
+                                         collapsed="true"/>
+            <mail-tagfield id="expandedtagsBox" label="&tagsHdr2.label;"
+                           collapsed="true"/>
+            <mail-urlfield id="expandedcontent-baseBox"
+                           label="&originalWebsite2.label;" collapsed="true"/>
+            <mail-headerfield id="expandeduser-agentBox"
+                              label="&userAgentField2.label;"
+                              collapsed="true"/>
+          </vbox>
+
+          <!-- perhaps this should be a customizable toolbar too -->
+          <vbox id="hideDetailsBox" align="end">
+            <button type="menu" id="otherActionsButton"
+                    label="&otherActionsButton.label;"
+                    class="msgHeaderView-button">
+              <menupopup id="otherActionsPopup">
+                <menuitem id="viewSourceMenuItem"
+                          label="&viewSourceMenuItem.label;"
+                          accesskey="&viewSourceMenuItem.accesskey;"
+                          oncommand="ViewPageSource(GetSelectedMessages());" />
+                <menuitem id="saveAsMenuItem" label="&saveAsMenuItem.label;"
+                          accesskey="&saveAsMenuItem.accesskey;"
+                          oncommand="MsgSaveAsFile();" />
+              </menupopup>
+            </button>
+            <button id="hideDetailsButton" label="&hideDetailsButton.label;"
+                    onclick="ToggleHeaderView();"
+                    class="msgHeaderView-button"/>
+          </vbox>
+        </hbox>
+      </vbox>
+    </hbox>
+  </deck>
+</hbox>
+
+<hbox id="editMessageBox" pack="start" align="center" collapsed="true"
+      class="main-header-area">
+  <label id="editMessageDescription" control="editMessageButton"
+         value="&editMessageDescription.label;"/>
+  <button id="editMessageButton" label="&editMessageButton.label;"
+          oncommand="MsgComposeDraftMessage()" class="msgHeaderView-button"/>
+</hbox>
+
+<!-- the message pane consists of 4 'boxes'. Box #4 is the attachment box which
+     can be toggled into a slim or an expanded view -->
+<hbox id="attachmentView" collapsed="true">
+  <description selectable="true" id="attachmentList" flex="1"
+               seltype="multiple" disableKeyNavigation="true"
+               onclick="attachmentListClick(event);" ondraggesture="nsDragAndDrop.startDrag(event,attachmentAreaDNDObserver);"
+               ondragover="nsDragAndDrop.dragOver(event, attachmentAreaDNDObserver);" context="attachmentListContext">
+  </description>
+</hbox>
+
+</overlay>
+
+
