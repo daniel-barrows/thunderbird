@@ -1,0 +1,435 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is mozilla.org code.
+   -
+   - The Initial Developer of the Original Code is
+   - Ben Bucksch <mozilla bucksch.org>.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/accountCreation.css" type="text/css"?>
+
+<!DOCTYPE window [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+  %brandDTD;
+  <!ENTITY % acDTD SYSTEM "chrome://messenger/locale/accountCreation.dtd">
+  %acDTD;
+]>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        id="autoconfigWizard"
+        windowtype="mail:autoconfig"
+        title="&welcome.description;"
+        style="&autoconfigWizard.style;"
+        onload="gEmailConfigWizard.onLoad();"
+        onkeypress="gEmailConfigWizard.onKeyDown(event)"
+        onclose="gEmailConfigWizard.onWizardShutdown();"
+        onunload="gEmailConfigWizard.onWizardShutdown();"
+        >
+
+  <stringbundleset>
+    <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
+    <stringbundle id="strings" src="chrome://messenger/locale/accountCreation.properties"/>
+    <stringbundle id="utilstrings" src="chrome://messenger/locale/accountCreationUtil.properties"/>
+  </stringbundleset>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/util.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/accountConfig.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/emailWizard.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/sanitizeDatatypes.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/fetchhttp.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/readFromXML.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/guessConfig.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/verifyConfig.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/fetchConfig.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/createInBackend.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/accountcreation/MyBadCertHandler.js"/>
+
+  <keyset id="mailKeys">
+    <key keycode="VK_ESCAPE" oncommand="window.close();"/>
+  </keyset>
+
+  <panel id="insecureserver-cleartext-panel" class="popup-panel">
+    <hbox>
+      <image class="insecureLarry"/>
+      <vbox flex="1">
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureClearText.description;</description>
+      </vbox>
+    </hbox>
+  </panel>
+  <panel id="insecureserver-selfsigned-panel" class="popup-panel">
+    <hbox>
+      <image class="insecureLarry"/>
+      <vbox flex="1">
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureSelfSigned.description;</description>
+      </vbox>
+    </hbox>
+  </panel>
+  <panel id="secureserver-panel" class="popup-panel">
+    <hbox>
+      <image class="secureLarry"/>
+      <description class="title">&secureServer.description;</description>
+    </hbox>
+  </panel>
+
+  <tooltip id="insecureserver-cleartext">
+    <hbox>
+      <image class="insecureLarry"/>
+      <vbox>
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureServer.tooltip.details;</description>
+      </vbox>
+    </hbox>
+  </tooltip>
+  <tooltip id="insecureserver-selfsigned">
+    <hbox>
+      <image class="insecureLarry"/>
+      <vbox>
+        <description class="title">&insecureServer.tooltip.title;</description>
+        <description class="details">&insecureServer.tooltip.details;</description>
+      </vbox>
+    </hbox>
+  </tooltip>
+  <tooltip id="secureservertooltip">
+    <hbox>
+      <image class="secureLarry"/>
+      <description class="title">&secureServer.description;</description>
+    </hbox>
+  </tooltip>
+
+
+  <vbox class="mastervbox"
+        id="mastervbox"
+        flex="1">
+    <grid>
+      <columns>
+        <column/>
+        <column flex="1"/>
+      </columns>
+      <rows>
+        <row class="heading">
+          <hbox align="center">
+            <label class="heading">&accountInformation.label;</label>
+          </hbox>
+          <hbox><spacer/></hbox>
+        </row>
+        <row>
+          <grid>
+            <rows>
+              <row align="center">
+                <description id="nameerror" class="errordescription"
+                             hidden="true"/>
+              </row>
+              <row align="center">
+                <textbox id="realname"
+                         class="padded"
+                         value="" emptytext="&name.description;"
+                         oninput="gEmailConfigWizard.onRealnameInput()"
+                         onblur="gEmailConfigWizard.validateRealname();"/>
+              </row>
+              <spacer/>
+              <row align="center">
+                <description id="emailerror" class="errordescription"
+                             hidden="true"/>
+              </row>
+              <row align="center">
+                <textbox id="email"
+                         class="padded uri-element"
+                         emptytext="&email.description;"
+                         oninput="gEmailConfigWizard.onEmailInput()"
+                         onblur="gEmailConfigWizard.validateEmail();"/>
+              </row>
+              <spacer/>
+              <row align="center">
+                <description id="passworderror" class="errordescription"
+                             hidden="true"/>
+              </row>
+              <row align="center">
+                <!-- this starts out as text so the emptytext shows, but then
+                     changes to type=password once it's not empty -->
+                <textbox id="password"
+                         class="padded"
+                         emptytext="&password.description;"
+                         type="text"
+                         oninput="gEmailConfigWizard.oninputPassword();"
+                         onfocus="this.type='password';"
+                         onblur="gEmailConfigWizard.onblurPassword();"/>
+              </row>
+              <row align="center">
+                <checkbox id="remember_password"
+                          accesskey="&rememberPassword.accesskey;"
+                          onclick="gEmailConfigWizard._userChangedPassword=true;"
+                          label="&rememberPassword.label;" checked="false"/>
+              </row>
+              <row>
+                <hbox pack="end">
+                  <button id="next_button"
+                          hidden="true"
+                          oncommand="gEmailConfigWizard.onNext();"
+                          accesskey="&next.accesskey;"
+                          label="&next.label;" class="larger-button"/>
+                  <button id="back_button" class="smaller-button"
+                          oncommand="gEmailConfigWizard.onBack();"
+                          accesskey="&back.accesskey;"
+                          label="&back.label;" hidden="true"/>
+                </hbox>
+              </row>
+            </rows>
+          </grid>
+          <vbox>
+            <groupbox id="settingsbox" class="settings" hidden="true">
+              <vbox>
+                <vbox id="configarea">
+                  <hbox>
+                    <hbox flex="1">
+                      <description id="config_status_title" flex="1"/>
+                    </hbox>
+                    <hbox pack="end">
+                      <button id="stop_button"
+                              oncommand="gEmailConfigWizard.onStop();"
+                              accesskey="&stop.accesskey;"
+                              label="&stop.label;" class="smaller-button"/>
+                      <button id="edit_button"
+                              oncommand="gEmailConfigWizard.onEdit();"
+                              accesskey="&edit.accesskey;"
+                              label="&edit.label;" class="smaller-button"
+                              hidden="true"/>
+                      <button id="go_button"
+                              oncommand="gEmailConfigWizard.onGo();"
+                              accesskey="&retest.accesskey;"
+                              label="&retest.label;" class="smaller-button"
+                              hidden="true"/>
+                    </hbox>
+                  </hbox>
+                  <hbox>
+                    <hbox flex="1">
+                        <description id="config_status_subtitle" flex="1"/>
+                    </hbox>
+                    <hbox pack="end">
+                      <vbox class="statusimage" width="16">
+                      <image id="config_spinner"
+                             src="chrome://global/skin/icons/loading_16.png"
+                             hidden="true"/>
+                      </vbox>
+                    </hbox>
+                  </hbox>
+                </vbox>
+                <vbox id="usernamearea">
+                  <label class="textbox-label" value="&username.label;"
+                         control="username"/>
+                  <hbox>
+                    <vbox class="statusimage" width="22"/>
+                    <textbox id="username"
+                             value=""
+                             disabled="true"
+                             class="username"/>
+                  </hbox>
+                </vbox>
+                <vbox id="incomingarea">
+                  <label class="textbox-label" value="&receivingServer.label;"
+                          control="incoming_server"/>
+                  <hbox>
+                    <vbox id="incoming_status" class="icon" width="22"/>
+                    <hbox>
+                      <textbox id="incoming_server"
+                               value=""
+                               disabled="true"
+                               oninput="gEmailConfigWizard.setIncomingServer()"
+                               class="host uri-element"/>
+                    </hbox>
+                  </hbox>
+                  <hbox>
+                    <spacer height="30" width="22"/>
+                    <hbox>
+                      <menulist id="incoming_protocol"
+                                value=""
+                                disabled="true"
+                                sizetopopup="none"
+                                class="protocol">
+                        <menupopup onpopuphidden="gEmailConfigWizard.setIncomingProtocol()">
+                          <menuitem label="&imap.label;" value="1"/>
+                          <menuitem label="&pop.label;" value="2"/>
+                        </menupopup>
+                      </menulist>
+                    </hbox>
+                    <hbox>
+                      <textbox id="incoming_port"
+                               value=""
+                               disabled="true"
+                               oninput="gEmailConfigWizard.setPort('incoming_port')"
+                               class="port"/>
+                    </hbox>
+                    <hbox>
+                      <menulist id="incoming_security"
+                                value=""
+                                disabled="true"
+                                sizetopopup="none"
+                                class="security">
+                        <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('incoming_security')">
+                          <menuitem label="&noEncryption.label;" value="1"/>
+                          <menuitem label="&starttls.label;" value="3"/>
+                          <menuitem label="&sslTls.label;" value="2"/>
+                        </menupopup>
+                      </menulist>
+                    </hbox>
+                  </hbox>
+                </vbox>
+                <vbox id="outgoingarea">
+                  <label class="textbox-label" value="&sendingServer.label;"
+                         control="outgoing_server"/>
+                  <hbox>
+                    <vbox id="outgoing_status" class="icon" width="22"/>
+                    <hbox>
+                      <menulist id="outgoing_server"
+                                class="host uri-element"
+                                disabled="true"
+                                sizetopopup="none"
+                                editable="true" >
+                              <!-- oncommand, and onchange and onmousedown of menulist's inputfield, set in ctor -->
+                        <menupopup id="smtp_menupopup"/>
+                      </menulist>
+                    </hbox>
+                  </hbox>
+                  <hbox>
+                    <spacer height="30" width="22"/>
+                    <hbox align="center">
+                      <label id="outgoing_protocol"
+                             class="protocol" value="&smtp.label;"/>
+                    </hbox>
+                    <hbox>
+                      <textbox id="outgoing_port"
+                               value=""
+                               disabled="true"
+                               oninput="gEmailConfigWizard.setPort('outgoing_port')"
+                               class="port"/>
+                    </hbox>
+                    <hbox>
+                      <menulist id="outgoing_security"
+                                value=""
+                                disabled="true"
+                                sizetopopup="none"
+                                class="security">
+                        <menupopup onpopuphidden="gEmailConfigWizard.setSecurity('outgoing_security')">
+                          <menuitem label="&noEncryption.label;" value="1"/>
+                          <menuitem label="&starttls.label;" value="3"/>
+                          <menuitem label="&sslTls.label;" value="2"/>
+                        </menupopup>
+                      </menulist>
+                    </hbox>
+                  </hbox>
+                </vbox>
+              </vbox>
+            </groupbox>
+          </vbox>
+        </row>
+      </rows>
+    </grid>
+    <spacer flex="1"/>
+    <hbox>
+      <hbox align="center">
+        <button id="cancel_button" label="&cancel.label;"
+                onmousedown="gEmailConfigWizard.onCancel();"/>
+        <label id="advanced_settings" value="&createAndEditSettings.label;"
+               onmousedown="gEmailConfigWizard.advancedSettings()"
+               hidden="true" class="clickable_label"/>
+      </hbox>
+      <spacer flex="1"/>
+      <hbox align="center">
+        <button id="create_button" label="&createAccount.label;"
+                accesskey="&createAccount.accesskey;"
+                onmousedown="gEmailConfigWizard.onOK();"
+                hidden="true" class="larger-button"/>
+      </hbox>
+    </hbox>
+  </vbox>
+
+
+  <vbox id="warningbox" class="warningbox" hidden="true" flex="1">
+    <hbox class="warning" flex="1">
+      <vbox class="larrybox">
+        <image id="insecure_larry" class="insecureLarry"/>
+      </vbox>
+      <vbox flex="1" class="warning_text">
+         <label class="warning-heading">&warning.label;</label>
+         <vbox id="incoming_box">
+           <hbox>
+             <label class="warning_settings" value="&incomingSettings.label;"/>
+             <description id="warning_incoming"/>
+           </hbox>
+           <label id="incoming_technical" value="&technicaldetails.label;"
+                  class="technical_details"
+                  onclick="gEmailConfigWizard.toggleDetails('incoming');"/>
+           <description id="incoming_details" collapsed="true"/>
+         </vbox>
+         <vbox id="outgoing_box">
+           <hbox>
+             <label class="warning_settings" value="&outgoingSettings.label;"/>
+             <description id="warning_outgoing"/>
+           </hbox>
+           <label id="outgoing_technical" value="&technicaldetails.label;"
+                  class="technical_details"
+                  onclick="gEmailConfigWizard.toggleDetails('outgoing');"/>
+           <description id="outgoing_details" collapsed="true"/>
+         </vbox>
+         <spacer flex="10"/>
+         <description id="findoutmore">&contactYourProvider.description;</description>
+         <checkbox id="acknowledge_warning"
+                   class="acknowledge_checkbox"
+                   label="&confirmWarning.label;"
+                   accesskey="&confirmWarning.accesskey;"
+                  oncommand="gEmailConfigWizard.toggleAcknowledgeWarning()"/>
+        <spacer flex="100"/>
+        <hbox>
+          <button id="getmeoutofhere" label="&changeSettings.label;"
+                  accesskey="&changeSettings.accesskey;"
+                  oncommand="gEmailConfigWizard.getMeOutOfHere()"/>
+          <spacer flex="1"/>
+          <button id="iknow" label="&createAccount.label;" disabled="true"
+                  accesskey="&createAccount.accesskey;"
+                  oncommand="gEmailConfigWizard.validateAndFinish()"/>
+        </hbox>
+      </vbox>
+    </hbox>
+  </vbox>
+</window>

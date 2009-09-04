@@ -1,0 +1,7 @@
+gloda.jar:
+% content gloda   %content/
+% overlay chrome://messenger/content/messenger.xul    chrome://gloda/content/thunderbirdOverlay.xul
+  content/overlay.js               (content/overlay.js)
+  content/thunderbirdOverlay.xul   (content/thunderbirdOverlay.xul)
+  content/glodacomplete.css        (content/glodacomplete.css)
+  content/glodacomplete.xml        (content/glodacomplete.xml)
