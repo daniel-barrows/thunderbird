@@ -1,0 +1,17 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+#include "nsIDownloadManagerUI.idl"
+
+[scriptable, uuid(b2180611-e56e-4831-9770-15a53aacb36a)]
+interface nsISuiteDownloadManagerUI : nsIDownloadManagerUI
+{
+  void showManager([optional] in nsIInterfaceRequestor aWindowContext,
+                    [optional] in unsigned long aID,
+                    [optional] in short aReason);
+  void showProgress([optional] in nsIInterfaceRequestor aWindowContext,
+                     [optional] in unsigned long aID,
+                     [optional] in short aReason);
+};

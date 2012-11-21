@@ -1,0 +1,30 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!-- LOCALIZATION NOTE : FILE Mouse-wheel management prefs, for those lucky OSes that support mouse wheels -->
+
+<!ENTITY pref.mouseWheel.title           "Mouse Wheel">
+<!ENTITY mouseWheelPanel.label           "Specify mouse wheel behavior when used with this modifier key: ">
+<!ENTITY usingJustTheWheel.label         "No modifier key">
+<!ENTITY usingWheelAndAlt.label          "&altKey.label;">
+<!ENTITY usingWheelAndCtrl.label         "&ctrlKey.label;">
+<!ENTITY usingWheelAndShft.label         "&shiftKey.label;">
+<!ENTITY mouseWheelAction.label          "Mouse wheel action">
+<!ENTITY doNothing.label                 "Do nothing">
+<!ENTITY doNothing.accesskey             "D">
+<!ENTITY scrollDocument.label            "Scroll the document">
+<!ENTITY scrollDocument.accesskey        "S">
+<!ENTITY history.label                   "Move back and forward in the browsing history">
+<!ENTITY history.accesskey               "M">
+<!ENTITY zoom.label                      "Zoom the page in or out">
+<!ENTITY zoom.accesskey                  "Z">
+<!ENTITY mouseWheelSpeed.label           "Mouse wheel speed">
+<!ENTITY verticalSpeed.label             "Vertical:">
+<!ENTITY verticalSpeed.accesskey         "V">
+<!ENTITY verticalReverse.label           "Reverse direction">
+<!ENTITY verticalReverse.accesskey       "R">
+<!ENTITY horizontalSpeed.label           "Horizontal:">
+<!ENTITY horizontalSpeed.accesskey       "o">
+<!ENTITY horizontalReverse.label         "Reverse direction">
+<!ENTITY horizontalReverse.accesskey     "e">

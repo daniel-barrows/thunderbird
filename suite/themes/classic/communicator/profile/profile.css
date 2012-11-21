@@ -1,0 +1,52 @@
+/* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+@import url("chrome://global/skin/global.css");
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+window.dialog {
+  padding: 0;
+}
+
+treechildren::-moz-tree-image {
+  -moz-margin-end: 2px;
+  list-style-image: url("chrome://communicator/skin/profile/profileicon-large.gif");
+}
+
+treechildren::-moz-tree-image(rowMigrate-no) {
+  list-style-image: url("chrome://communicator/skin/profile/migrate.gif");
+}
+
+/* profile selection dialog */
+html#intro {
+  width: 17em;
+}
+
+box#managebuttons > button {
+  min-width: 8em;
+}
+
+/* display area */
+box#contentarea {
+  border-top: 2px groove #CCCCCC;
+  border-bottom: 2px groove #CCCCCC;
+  padding: 7px;
+}
+
+/* top border on status area */
+box#wizardButtons {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+box.selection {
+  margin-top: 4px;
+}
+
+description.error {
+  color: #FF0000;
+}
