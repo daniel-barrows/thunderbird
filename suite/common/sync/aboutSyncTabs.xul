@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/skin/aboutSyncTabs.css" type="text/css"?>
+<?xml-stylesheet href="chrome://communicator/content/aboutSyncTabs.css" type="text/css"?>
+
+<!DOCTYPE window [
+  <!ENTITY % aboutSyncTabsDTD SYSTEM "chrome://communicator/locale/aboutSyncTabs.dtd">
+  %aboutSyncTabsDTD;
+]>
+
+<window id="tabs-display"
+        onload="RemoteTabViewer.init();"
+        onunload="RemoteTabViewer.uninit();"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        title="&tabs.otherComputers.label;">
+  <script type="application/javascript;version=1.8" src="chrome://communicator/content/aboutSyncTabs.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+  <html:head>
+    <html:link rel="icon" href="chrome://communicator/skin/sync/sync-16.png"/>
+  </html:head>
+
+  <popupset id="contextmenus">
+    <menupopup id="tabListContext">
+      <menuitem label="&tabs.context.openTab.label;"
+                accesskey="&tabs.context.openTab.accesskey;"
+                oncommand="RemoteTabViewer.openSelected();"
+                showFor="single"/>
+      <menuitem label="&tabs.context.bookmarkSingleTab.label;"
+                accesskey="&tabs.context.bookmarkSingleTab.accesskey;"
+                oncommand="RemoteTabViewer.bookmarkSingleTab(event);"
+                showFor="single"/>
+      <menuitem label="&tabs.context.openMultipleTabs.label;"
+                accesskey="&tabs.context.openMultipleTabs.accesskey;"
+                oncommand="RemoteTabViewer.openSelected();"
+                showFor="multiple"/>
+      <menuitem label="&tabs.context.bookmarkMultipleTabs.label;"
+                accesskey="&tabs.context.bookmarkMultipleTabs.accesskey;"
+                oncommand="RemoteTabViewer.bookmarkSelectedTabs();"
+                showFor="multiple"/>
+      <menuseparator/>
+      <menuitem label="&tabs.context.refreshList.label;"
+                accesskey="&tabs.context.refreshList.accesskey;"
+                oncommand="RemoteTabViewer.buildList();"
+                showFor="all"/>
+    </menupopup>
+  </popupset>
+  <richlistbox id="tabsList"
+               context="tabListContext" 
+               seltype="multiple"
+               class="plain"
+               align="center"
+               flex="1"
+               onclick="RemoteTabViewer.handleClick(event);"
+               oncontextmenu="RemoteTabViewer.adjustContextMenu(event);">
+    <hbox id="headers" align="center">
+      <label id="tabsListHeading"
+             value="&tabs.otherComputers.label;"/>
+      <spacer flex="1"/>
+      <textbox type="search"
+               aria-controls="tabsList"
+               emptytext="&tabs.searchText.label;"
+               oncommand="RemoteTabViewer.filterTabs(event);"/>
+    </hbox>
+  </richlistbox>
+</window>

@@ -1,0 +1,161 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+#include "nsrootidl.idl"
+
+interface nsISimpleEnumerator;
+
+%{C++
+
+#define NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID \
+  "@mozilla.org/messenger/headerparser;1"
+%}
+
+/**
+ * A structured representation of a single address.
+ *
+ * This is meant to be correspond to the address production from RFC 5322.
+ */
+[scriptable, uuid(15f9cc44-afdf-48c8-9de7-3ca0f18fc3b6)]
+interface msgIAddressObject : nsISupports {
+  /// The name of the mailbox.
+  readonly attribute AString name;
+
+  /// The email of the mailbox.
+  readonly attribute AString email;
+
+  /// Return a string form of this object that is suitable for display.
+  AString toString();
+};
+
+/* 
+ * nsIMsgRFCParser Interface declaration 
+ */ 
+[scriptable, uuid(4da84fa8-bd45-45e7-9c98-3ba2be88343f)]
+interface nsIMsgHeaderParser : nsISupports {
+  /// Return a structured mailbox object having the given name and email.
+  msgIAddressObject makeMailboxObject(in AString aName, in AString aEmail);
+
+  /**
+   * Return an array of structured mailbox for the given display name string.
+   *
+   * The string is expected to be a comma-separated sequence of strings that
+   * would be produced by msgIAddressObject::toString(). For example, the string
+   * "Bond, James <agent007@mi5.invalid>" would produce one address object,
+   * while the string "webmaster@nowhere.invalid, child@nowhere.invalid" would
+   * produce two address objects.
+   */
+  void makeFromDisplayAddress(in AString aDisplayAddresses,
+                              out unsigned long count,
+                              [retval, array, size_is(count)] out msgIAddressObject addresses);
+
+  void parseHeadersWithArray(in wstring aLine, 
+                             [array, size_is(count)] out wstring aEmailAddresses,
+                             [array, size_is(count)] out wstring aNames,
+                             [array, size_is(count)] out wstring aFullNames,
+                             [retval] out unsigned long count);
+
+
+  /**
+   * Given a string which contains a list of Header addresses, parses it into
+   * their component names and mailboxes.
+   *
+   * @param aLine          The header line to parse.
+   * @param aNames         A string of the names in the header line. The names
+   *                       are separated by null-terminators.
+   *                       This param may be null if the caller does not want
+   *                       this part of the result.
+   * @param aAddresses     A string of the addresses in the header line. The
+   *                       addresses are separated by null-terminators.
+   *                       This param may be null if the caller does not want
+   *                       this part of the result.
+   * @param aNumAddresses  The number of addresses in the header. If this is
+   *                       negative, there has been an error parsing the
+   *                       header.
+   */
+  [noscript] void parseHeaderAddresses(in string aLine, out string aNames, 
+                                       out string aAddresses,
+                                       out uint32_t aNumAddresses);
+
+  /**
+   * Given a string which contains a list of Header addresses, returns a
+   * comma-separated list of just the `mailbox' portions.
+   *
+   * @param aLine          The header line to parse.
+   * @return               A comma-separated list of just the mailbox parts
+   *                       of the email-addresses.
+   */
+  ACString extractHeaderAddressMailboxes(in ACString aLine);
+
+  /**
+   * Given a string which contains a list of Header addresses, returns a
+   * comma-separated list of just the `user name' portions.  If any of
+   * the addresses doesn't have a name, then the mailbox is used instead.
+   *
+   * @param aLine          The header line to parse.
+   * @return               A comma-separated list of just the name parts
+   *                       of the addresses.
+   */
+  AUTF8String extractHeaderAddressNames(in AUTF8String aLine);
+
+  /*
+   * Like extractHeaderAddressNames, but only returns the first name in the
+   * header if there is one. This function will return unquoted strings suitable
+   * for display.
+   *
+   * @param aLine          The header line to parse.
+   * @return               The first name found in the list.
+   */
+  AUTF8String extractHeaderAddressName(in AUTF8String aLine);
+
+  /**
+   * Given a string which contains a list of Header addresses, returns a new
+   * string with the same data, but inserts missing commas, parses and reformats
+   * it, and wraps long lines with newline-tab.
+   *
+   * @param aLine          The header line to parse.
+   * @return               The reformatted header line.
+   */
+  [noscript] string reformatHeaderAddresses(in string aLine);
+
+  /**
+   * Returns a copy of the input which may have had some addresses removed.
+   * Addresses are removed if they are already in either of the supplied
+   * address lists.
+   *
+   * Addresses are considered to be the same if they contain the same mailbox
+   * part (case-insensitive.)  Real names and other comments are not compared.
+   *
+   * @param aAddrs              The addresses to remove duplicates from.
+   * @param aOtherAddrs         Other addresses that the duplicate removal
+   *                            process also checks for duplicates against.
+   *                            Addresses in this list will not be added to the
+   *                            result.
+   * @return                    A string based on the original without the
+   *                            duplicate addresses.
+   */
+  AUTF8String removeDuplicateAddresses(in AUTF8String aAddrs,
+                                       in AUTF8String aOtherAddrs);
+
+  /* This function removes the quoting if you want to show the
+     names to users. e.g. summary file, address book. If preserveIntegrity is set to true,
+     quote will not be removed in case the name part of the email contains a comma.
+  */
+  [noscript] string unquotePhraseOrAddr (in string line, in boolean preserveIntegrity);
+  wstring unquotePhraseOrAddrWString (in wstring line, in boolean preserveIntegrity);
+
+  /* Given a string, will make it safe to use by adding missing quote and escaping needed quote */
+  wstring reformatUnquotedAddresses(in wstring line);
+
+  /**
+   * Given a name and email address, produce a string that is suitable for
+   * emitting in a MIME header (after applying RFC 2047 encoding).
+   *
+   * @note This is a temporary method.
+   */
+  AString makeMimeAddress(in AString aName, in AString aEmail);
+};
+
